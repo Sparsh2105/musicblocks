@@ -72,6 +72,32 @@ describe("musicutils-modewheel", () => {
         expect(modewheel.getSavedCustomModes()).toEqual([]);
     });
 
+    it("returns an empty array when customModes in localStorage is corrupted or invalid JSON", () => {
+        localStorage.setItem("customModes", "{corrupted json");
+        expect(modewheel.getSavedCustomModes()).toEqual([]);
+        localStorage.removeItem("customModes");
+    });
+
+    it("returns an empty array when customModes in localStorage is not an array", () => {
+        localStorage.setItem("customModes", JSON.stringify({ notAnArray: true }));
+        expect(modewheel.getSavedCustomModes()).toEqual([]);
+        localStorage.removeItem("customModes");
+    });
+
+    it("filters out invalid entries from customModes in localStorage", () => {
+        const testData = [
+            null,
+            undefined,
+            123,
+            { notName: "test" },
+            { name: 456 },
+            { name: "myValidCustomMode" }
+        ];
+        localStorage.setItem("customModes", JSON.stringify(testData));
+        expect(modewheel.getSavedCustomModes()).toEqual([{ name: "myValidCustomMode" }]);
+        localStorage.removeItem("customModes");
+    });
+
     it("is still reachable through musicutils.js for callers that require it", () => {
         for (const name of Object.keys(modewheel)) {
             if (name === "MusicUtilsModeWheel") continue;
